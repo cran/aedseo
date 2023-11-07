@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Automated Detection of Seasonal Epidemic Onset in R</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Automated Detection of Seasonal Epidemic
+Onset in R</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(aedseo)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt; Vedhæfter pakke: &#39;dplyr&#39;</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt; De følgende objekter er maskerede fra &#39;package:stats&#39;:</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt;     filter, lag</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt; De følgende objekter er maskerede fra &#39;package:base&#39;:</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&gt; Vedhæfter pakke: &#39;ggplot2&#39;</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co">#&gt; Det følgende objekt er maskeret fra &#39;package:aedseo&#39;:</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="co">#&gt;     autoplot</span></span></code></pre></div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The methodology used to detect the onset of seasonal respiratory
+epidemics can be divided into two essential criteria:</p>
+<ul>
+<li>The local estimate of the exponential growth rate, <span class="math inline">\(r\)</span>, is significantly greater than
+zero.</li>
+<li>The sum of cases (SoC) over the past <span class="math inline">\(k\)</span> units of time exceeds a
+disease-specific threshold.</li>
+</ul>
+<p>Here, <span class="math inline">\(k\)</span> denotes the window size
+employed to obtain the local estimate of the exponential growth rate and
+the SoC. When both of these criteria are met, an alarm is triggered and
+the onset of the seasonal epidemic is detected.</p>
+</div>
+<div id="simulations" class="section level2">
+<h2>Simulations</h2>
+<p>To assess the effectiveness of the <code>aedseo</code> function, we
+simulate some data. The simulated data is generated using a negative
+binomial model with a mean parameter <span class="math inline">\(\mu\)</span> and a variance parameter <span class="math inline">\(\phi\mu\)</span>. In this context <span class="math inline">\(\phi\)</span> denotes a dispersion parameter,
+which is assumed to be greater than or equal to 1. The mean, denoted as
+<span class="math inline">\(\mu(t)\)</span>, is defined by a linear
+predictor that incorporates both a trend component and seasonality
+components represented by Fourier terms. The equation <span class="math inline">\(\mu(t)\)</span> is as follows:</p>
+<p><span class="math display">\[\begin{equation}
+  \mu(t) = \exp\Biggl( \theta + \beta t + \sum_{j=1}^m \biggl(
+\gamma_{\sin} \sin\Bigl( \frac{2 \pi t}{52}\Bigl) + \gamma_{\cos} \cos
+\Bigl( \frac{2 \pi t}{52} \Bigl) \biggl) \Biggl)
+\end{equation}\]</span></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>mu_t <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>    t,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    <span class="at">theta =</span> <span class="dv">1</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    <span class="at">exp_beta =</span> <span class="fl">1.001</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    <span class="at">gamma_sin =</span> <span class="dv">1</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>    <span class="at">gamma_cos =</span> <span class="dv">1</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    <span class="at">trend =</span> <span class="dv">1</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    <span class="at">j =</span> <span class="dv">1</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    ...) {</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="co"># Start construction of linear predictor</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  linear_predictor <span class="ot">&lt;-</span> theta</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="co"># ... add a trend if the scenario request it</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  <span class="cf">if</span> (trend <span class="sc">==</span> <span class="dv">1</span>) {</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    linear_predictor <span class="ot">&lt;-</span> linear_predictor <span class="sc">+</span> <span class="fu">log</span>(exp_beta) <span class="sc">*</span> t</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  }</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  <span class="co"># ... add a seasonal component</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  linear_predictor <span class="ot">&lt;-</span> linear_predictor <span class="sc">+</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>    gamma_sin <span class="sc">*</span> <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> t <span class="sc">*</span> j <span class="sc">/</span> <span class="dv">52</span>) <span class="sc">+</span> gamma_cos <span class="sc">*</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> t <span class="sc">*</span> j <span class="sc">/</span> <span class="dv">52</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">exp</span>(linear_predictor))</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>}</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>simulate_from_nbinom <span class="ot">&lt;-</span> <span class="cf">function</span>(...) {</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>  <span class="co"># Set some default values for the simulation</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>  default_pars <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>    <span class="st">&quot;t&quot;</span> <span class="ot">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>    <span class="st">&quot;theta&quot;</span> <span class="ot">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>    <span class="st">&quot;exp_beta&quot;</span> <span class="ot">=</span> <span class="fl">1.001</span>,</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>    <span class="st">&quot;gamma_sin&quot;</span> <span class="ot">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>    <span class="st">&quot;gamma_cos&quot;</span> <span class="ot">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>    <span class="st">&quot;trend&quot;</span> <span class="ot">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>    <span class="st">&quot;j&quot;</span> <span class="ot">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>    <span class="st">&quot;phi&quot;</span> <span class="ot">=</span> <span class="dv">1</span>,</span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>    <span class="st">&quot;seed&quot;</span> <span class="ot">=</span> <span class="dv">42</span></span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>  )</span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>  <span class="co"># Match call</span></span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>  mc <span class="ot">&lt;-</span> <span class="fu">as.list</span>(<span class="fu">match.call</span>())[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>  <span class="co"># ... and change parameters relative to the call</span></span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a>  index_mc <span class="ot">&lt;-</span> <span class="sc">!</span><span class="fu">names</span>(default_pars) <span class="sc">%in%</span> <span class="fu">names</span>(mc)</span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>  mc <span class="ot">&lt;-</span> <span class="fu">append</span>(mc, default_pars[index_mc])[<span class="fu">names</span>(default_pars)]</span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>  <span class="co"># Set the seed</span></span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a>  <span class="fu">set.seed</span>(mc<span class="sc">$</span>seed)</span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a>  <span class="co"># Calculate the number of time points</span></span>
+<span id="cb2-47"><a href="#cb2-47" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">eval</span>(mc<span class="sc">$</span>t))</span>
+<span id="cb2-48"><a href="#cb2-48" tabindex="-1"></a>  <span class="co"># Calculate mu_t</span></span>
+<span id="cb2-49"><a href="#cb2-49" tabindex="-1"></a>  mu_t_scenario <span class="ot">&lt;-</span> <span class="fu">do.call</span>(<span class="at">what =</span> <span class="st">&quot;mu_t&quot;</span>, <span class="at">args =</span> mc)</span>
+<span id="cb2-50"><a href="#cb2-50" tabindex="-1"></a>  <span class="co"># ... and compute the variance of the negative binomial distribution</span></span>
+<span id="cb2-51"><a href="#cb2-51" tabindex="-1"></a>  variance <span class="ot">&lt;-</span> mu_t_scenario <span class="sc">*</span> mc<span class="sc">$</span>phi</span>
+<span id="cb2-52"><a href="#cb2-52" tabindex="-1"></a>  <span class="co"># ... and infer the size in the negative binomial distribution</span></span>
+<span id="cb2-53"><a href="#cb2-53" tabindex="-1"></a>  size <span class="ot">&lt;-</span> (mu_t_scenario <span class="sc">+</span> mu_t_scenario<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> variance</span>
+<span id="cb2-54"><a href="#cb2-54" tabindex="-1"></a>  <span class="co"># Plugin and simulate the data</span></span>
+<span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>  simulation <span class="ot">&lt;-</span> <span class="fu">rnbinom</span>(<span class="at">n =</span> n, <span class="at">mu =</span> mu_t_scenario, <span class="at">size =</span> size)</span>
+<span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a></span>
+<span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="st">&quot;mu_t&quot;</span> <span class="ot">=</span> mu_t_scenario, <span class="st">&quot;simulation&quot;</span> <span class="ot">=</span> simulation, <span class="st">&quot;pars&quot;</span> <span class="ot">=</span> mc))</span>
+<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a>}</span>
+<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a></span>
+<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a><span class="co"># Define the number of years and the number of months within a year</span></span>
+<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a>years <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a>weeks <span class="ot">&lt;-</span> <span class="dv">52</span></span>
+<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a><span class="co"># ... calculate the total number of observations</span></span>
+<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>n <span class="ot">&lt;-</span> years <span class="sc">*</span> weeks</span>
+<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a><span class="co"># ... and a vector containing the overall time passed</span></span>
+<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>time_overall <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span>n</span>
+<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a><span class="co"># Create arbitrary dates</span></span>
+<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a>dates <span class="ot">&lt;-</span> <span class="fu">seq.Date</span>(<span class="at">from =</span> <span class="fu">as.Date</span>(<span class="st">&quot;2010-01-01&quot;</span>), <span class="at">by =</span> <span class="st">&quot;week&quot;</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a></span>
+<span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a></span>
+<span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a><span class="co"># Simulate the data</span></span>
+<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a>simulation <span class="ot">&lt;-</span> <span class="fu">simulate_from_nbinom</span>(<span class="at">t =</span> time_overall, <span class="at">theta =</span> <span class="fu">log</span>(<span class="dv">1000</span>), <span class="at">phi =</span> <span class="dv">5</span>)</span>
+<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a></span>
+<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a><span class="co"># Collect the data in a &#39;tibble&#39;</span></span>
+<span id="cb2-75"><a href="#cb2-75" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb2-76"><a href="#cb2-76" tabindex="-1"></a>  <span class="at">Date =</span> dates,</span>
+<span id="cb2-77"><a href="#cb2-77" tabindex="-1"></a>  <span class="at">mu_t =</span> simulation<span class="sc">$</span>mu_t,</span>
+<span id="cb2-78"><a href="#cb2-78" tabindex="-1"></a>  <span class="at">y =</span> simulation<span class="sc">$</span>simulation</span>
+<span id="cb2-79"><a href="#cb2-79" tabindex="-1"></a>)</span></code></pre></div>
+<p>A total of three years of weekly data are then simulated with the
+following set of parameters:</p>
+<ul>
+<li><span class="math inline">\(\theta=\log(1000)\)</span>, representing
+an average intensity of 1000 cases.</li>
+<li><span class="math inline">\(\exp(\beta)=1.001\)</span>, indicating a
+slowly increasing trend.</li>
+<li><span class="math inline">\(\gamma_{\sin} = 1\)</span> and <span class="math inline">\(\gamma_{\cos} = 1\)</span>, representing the
+seasonality component.</li>
+<li><span class="math inline">\(\phi = 5\)</span>, which represents the
+dispersion parameter for the negative binomial distribution.</li>
+</ul>
+<p>In the following figure, the simulated data (solid circles) is
+visualized alongside the mean (solid line) for the three arbitrary years
+of weekly data.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Have a glance at the time varying mean and the simulated data</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>sim_data <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> Date)) <span class="sc">+</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">y =</span> mu_t)) <span class="sc">+</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">y =</span> y))</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="applying-the-algorithm" class="section level2">
+<h2>Applying the algorithm</h2>
+<p>In the following section, the application of the algorithm to the
+simulated data is outlined. The first step is to transform the simulated
+data into a <code>aedseo_tsd</code> object using the <code>tsd()</code>
+function.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Construct an &#39;aedseo_tsd&#39; object with the time series data</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>tsd_data <span class="ot">&lt;-</span> <span class="fu">tsd</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">observed =</span> simulation<span class="sc">$</span>simulation,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">time =</span> dates,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">time_interval =</span> <span class="st">&quot;week&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>)</span></code></pre></div>
+<p>Next, the time series data object is passed to the
+<code>aedseo()</code> function. Here, a window width of <span class="math inline">\(k=5\)</span> is specified, meaning that a total of
+5 weeks is used in the local estimate of the exponential growth rate.
+Additionally, a 95% confidence interval is specified. Finally, the
+exponential growth rate is estimated using quasi-Poisson regression to
+account for overdispersion in the data.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Apply the &#39;aedseo&#39; algorithm</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>aedseo_results <span class="ot">&lt;-</span> <span class="fu">aedseo</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">tsd =</span> tsd_data,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">k =</span> <span class="dv">5</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">level =</span> <span class="fl">0.95</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">disease_threshold =</span> <span class="dv">2000</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">&quot;quasipoisson&quot;</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>)</span></code></pre></div>
+<p>In the figure below, the observed values from the simulations is
+visualized alongside the local estimate of the growth rate and its
+corresponding 95% confidence interval.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Join the observations and estimated growth rates</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>full_data <span class="ot">&lt;-</span> <span class="fu">full_join</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">x =</span> tsd_data,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">y =</span> aedseo_results,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">by =</span> <span class="fu">join_by</span>(<span class="st">&quot;time&quot;</span> <span class="sc">==</span> <span class="st">&quot;reference_time&quot;</span>, <span class="st">&quot;observed&quot;</span> <span class="sc">==</span> <span class="st">&quot;observed&quot;</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co"># Data to add horizontal line in growth rate</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>ablines <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">name =</span> <span class="fu">c</span>(<span class="st">&quot;growth_rate&quot;</span>, <span class="st">&quot;observed&quot;</span>), <span class="at">x =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>))</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co"># Make a nice plot</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>full_data <span class="sc">%&gt;%</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(observed, growth_rate)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>  <span class="fu">ggplot</span>(</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>      <span class="at">x =</span> time,</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>      <span class="at">y =</span> value</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>    )</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>    <span class="at">data =</span> aedseo_results <span class="sc">%&gt;%</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">name =</span> <span class="st">&quot;observed&quot;</span>),</span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(</span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>      <span class="at">x =</span> reference_time,</span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>      <span class="at">y =</span> observed,</span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>      <span class="at">alpha =</span> seasonal_onset_alarm</span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>    )</span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(</span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>    <span class="at">data =</span> aedseo_results <span class="sc">%&gt;%</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">name =</span> <span class="st">&quot;growth_rate&quot;</span>),</span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(</span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>      <span class="at">x =</span> reference_time,</span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a>      <span class="at">ymin =</span> lower_growth_rate,</span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>      <span class="at">ymax =</span> upper_growth_rate</span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>    ),</span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">alpha =</span> <span class="fl">0.3</span></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a>  <span class="fu">geom_hline</span>(</span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a>    <span class="at">data =</span> ablines,</span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">yintercept =</span> x),</span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span></span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(</span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a>    <span class="at">facets =</span> <span class="fu">vars</span>(name),</span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>    <span class="at">ncol =</span> <span class="dv">1</span>,</span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a>    <span class="at">scale =</span> <span class="st">&quot;free_y&quot;</span></span>
+<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb6-51"><a href="#cb6-51" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span></span>
+<span id="cb6-52"><a href="#cb6-52" tabindex="-1"></a>  )</span>
+<span id="cb6-53"><a href="#cb6-53" tabindex="-1"></a><span class="co">#&gt; Warning: Using alpha for a discrete variable is not advised.</span></span>
+<span id="cb6-54"><a href="#cb6-54" tabindex="-1"></a><span class="co">#&gt; Warning: Removed 4 rows containing missing values (`geom_line()`).</span></span>
+<span id="cb6-55"><a href="#cb6-55" tabindex="-1"></a><span class="co">#&gt; Warning: Removed 1 rows containing missing values (`geom_hline()`).</span></span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="the-aedseo-package-implements-s3-methods" class="section level2">
+<h2>The aedseo package implements S3 methods</h2>
+<p>In this section, we will explore how to use the <code>predict</code>
+and <code>summary</code> S3 methods provided by the <code>aedseo</code>
+package. These methods enhance the functionality of your
+<code>aedseo</code> objects, allowing you to make predictions and obtain
+concise summaries of your analysis results.</p>
+<div id="predicting-growth-rates" class="section level3">
+<h3>Predicting Growth Rates</h3>
+<p>The <code>predict</code> method for <code>aedseo</code> objects
+allows you to make predictions for future time steps based on the
+estimated growth rates. Here’s how to use it:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Example: Predict growth rates for the next 5 time steps</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>(prediction <span class="ot">&lt;-</span> <span class="fu">predict</span>(aedseo_results, <span class="at">n_step =</span> <span class="dv">5</span>))</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 5</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt;       t time       estimate lower upper</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt;   &lt;int&gt; &lt;date&gt;        &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; 1     0 2012-12-21    3279. 3279. 3279.</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; 2     1 2012-12-22    3736. 3590. 3889.</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; 3     2 2012-12-23    4257. 3930. 4613.</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; 4     3 2012-12-24    4851. 4303. 5471.</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; 5     4 2012-12-25    5527. 4710. 6490.</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; 6     5 2012-12-26    6298. 5157. 7697.</span></span></code></pre></div>
+<p>In the example above, we use the predict method to predict growth
+rates for the next 5 time steps. The n_step argument specifies the
+number of steps into the future you want to forecast. The resulting
+prediction object will contain estimates, lower bounds, and upper bounds
+for each time step.</p>
+</div>
+<div id="summarizing-aedseo-results" class="section level3">
+<h3>Summarizing AEDSEO results</h3>
+<p>The summary method for aedseo objects provides a concise summary of
+your automated early detection of seasonal epidemic onset (AEDSEO)
+analysis. You can use it to retrieve important information about your
+analysis, including the latest growth warning and the total number of
+growth warnings:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">summary</span>(aedseo_results)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; Summary of aedseo Object</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;     Called using distributional family:</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;       quasipoisson</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;     Window size for growth rate estimation and</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;     calculation of sum of cases:</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;       5</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;     Disease specific threshold:</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;       2000</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;     Reference time point:</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;       2012-12-21</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt;     Sum of cases at reference time point:</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt;       12468</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt;     Latest sum of cases warning:</span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt;       2012-12-21</span></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt;     Growth rate estimate at reference time point:</span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt;       Estimate   Lower (2.5%)   Upper (97.5%)</span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;          0.131     0.091          0.171</span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;     Total number of growth warnings in the series:</span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;       59</span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;     Latest growth warning:</span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;       2012-12-21</span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;     Latest seasonal onset alarm:</span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;       2012-12-21</span></span></code></pre></div>
+<p>The summary method generates a summary message that includes details
+such as the reference time point, growth rate estimates, and the number
+of growth warnings in the series. It helps you quickly assess the key
+findings of your analysis.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
