@@ -8,8 +8,6 @@
 [![R-CMD-check](https://github.com/ssi-dk/aedseo/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ssi-dk/aedseo/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/ssi-dk/aedseo/branch/master/graph/badge.svg)](https://app.codecov.io/gh/ssi-dk/aedseo?branch=master)
-[![Lifecycle:
-stable](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/aedseo)](https://CRAN.R-project.org/package=aedseo)
 [![Lifecycle:
@@ -41,7 +39,7 @@ You can install the development version of `aedseo` from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("telkamp7/aedseo")
+devtools::install_github("ssi-dk/aedseo")
 ```
 
 ## Getting started
@@ -50,16 +48,16 @@ To quickly get started with `aedseo`, follow these steps:
 
 1.  Install the package using the code provided above.
 2.  Load the package with `library(aedseo)`.
-3.  Create a time series data object (`tsibble`) from your data using
-    the `aedseo::tsd` function.
-4.  Apply the `aedseo::aedseo` function to estimate growth rates and
-    detect seasonal epidemic onsets.
+3.  Create a time series data object (`aedseo_tsd`) from your data using
+    the `tsd()` function.
+4.  Apply the `aedseo()` function to estimate growth rates and detect
+    seasonal epidemic onsets.
 
 ``` r
 # Load the package
 library(aedseo)
 
-# Create a tsibble object from your data
+# Create a aedseo_tsd object from your data
 tsd_data <- tsd(
   observed = c(100, 120, 150, 180, 220, 270),
   time = as.Date(c(

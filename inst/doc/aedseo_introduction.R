@@ -4,7 +4,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----setup--------------------------------------------------------------------
+## ----setup, warning=FALSE, message=FALSE--------------------------------------
 library(aedseo)
 library(tibble)
 library(tidyr)
@@ -93,19 +93,16 @@ sim_data <- tibble(
 )
 
 ## -----------------------------------------------------------------------------
-# Have a glance at the time varying mean and the simulated data
-sim_data %>%
-  ggplot(mapping = aes(x = Date)) +
-  geom_line(mapping = aes(y = mu_t)) +
-  geom_point(mapping = aes(y = y))
-
-## -----------------------------------------------------------------------------
 # Construct an 'aedseo_tsd' object with the time series data
 tsd_data <- tsd(
-  observed = simulation$simulation,
-  time = dates,
+  observed = sim_data$y,
+  time = sim_data$Date,
   time_interval = "week"
 )
+
+## -----------------------------------------------------------------------------
+# Have a glance at the time varying mean and the simulated data
+plot(tsd_data)
 
 ## -----------------------------------------------------------------------------
 # Apply the 'aedseo' algorithm
@@ -118,58 +115,8 @@ aedseo_results <- aedseo(
 )
 
 ## -----------------------------------------------------------------------------
-# Join the observations and estimated growth rates
-full_data <- full_join(
-  x = tsd_data,
-  y = aedseo_results,
-  by = join_by("time" == "reference_time", "observed" == "observed")
-)
-
-# Data to add horizontal line in growth rate
-ablines <- tibble(name = c("growth_rate", "observed"), x = c(0, NA))
-
-# Make a nice plot
-full_data %>%
-  pivot_longer(cols = c(observed, growth_rate)) %>%
-  ggplot(
-    mapping = aes(
-      x = time,
-      y = value
-    )
-  ) +
-  geom_line() +
-  geom_point(
-    data = aedseo_results %>%
-      mutate(name = "observed"),
-    mapping = aes(
-      x = reference_time,
-      y = observed,
-      alpha = seasonal_onset_alarm
-    )
-  ) +
-  geom_ribbon(
-    data = aedseo_results %>%
-      mutate(name = "growth_rate"),
-    mapping = aes(
-      x = reference_time,
-      ymin = lower_growth_rate,
-      ymax = upper_growth_rate
-    ),
-    inherit.aes = FALSE, alpha = 0.3
-  ) +
-  geom_hline(
-    data = ablines,
-    mapping = aes(yintercept = x),
-    linetype = "dashed"
-  ) +
-  facet_wrap(
-    facets = vars(name),
-    ncol = 1,
-    scale = "free_y"
-  ) +
-  theme(
-    legend.position = "top"
-  )
+# Employing the S3 `plot()` method
+plot(aedseo_results)
 
 ## -----------------------------------------------------------------------------
 # Example: Predict growth rates for the next 5 time steps

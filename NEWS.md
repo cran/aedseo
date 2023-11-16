@@ -1,18 +1,18 @@
-# aedseo 0.1.0
+# aedseo 0.1.1
 
-## Features
 
-- Added the `aedseo` function, which automates the early detection of seasonal epidemic onsets by estimating growth rates for consecutive time intervals and calculating the Sum of Cases (sum_of_cases).
+## Improvements
 
-- Introduced `autoplot` and `plot` methods for visualizing `aedseo` and `aedseo_tsd` objects. These functions allow you to create insightful ggplot2 plots for your data.
+* Enhanced clarity and user guidance in the introductory vignette, providing a more comprehensive walkthrough of the application of the 'aeddo' algorithm on time series data with detailed explanations and illustrative examples.
 
-- Included the `fit_growth_rate` function, enabling users to fit growth rate models to time series observations.
+## Minor changes
 
-- Introduced the `predict` method for `aedseo` objects, which allows you to predict observations for future time steps given 
-the growth rates.
+* Updated LICENSE.md to have Statens Serum Institut as a copyright holder.
 
-- Added the `summary` method for `aedseo` objects, providing a comprehensive summary of the results.
+* Fixed installation guide for the development version in the README.Rmd and README.md
 
-- Introduced the `tsd` function, allowing users to create S3 `aedseo_tsd` (time-series data) objects from observed data and corresponding dates.
+* Added Lasse Engbo Christiansen as an author of the R package.
 
-Please note that this is the initial CRAN release of the aedseo package, and we look forward to adding more features and improvements in future updates. We appreciate your feedback and contributions to make this package even more useful for early detection of seasonal epidemics.
+* Added a new function `epi_calendar()` that determines the epidemiological season based on a given date, allowing users to easily categorize dates within or outside specified seasons.
+
+* Introduced additional visualizations in the `autoplot()` method, enhancing the capabilities of the `plot()` method with new displays of observed cases and growth rates.
