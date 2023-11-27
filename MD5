@@ -1,7 +1,7 @@
-6460da840b6122214a7d6d17ea5dcae5 *DESCRIPTION
+51256eb37ca7080c4d3d820ce2aef863 *DESCRIPTION
 24d5a99a8e88941df4f724da5cd4522e *LICENSE
 b8e526196018f1a64658e7c083916668 *NAMESPACE
-1944585f42e726bb24c350274aa32831 *NEWS.md
+5a30fd980b652d944a5c8e98897e0fef *NEWS.md
 2957ba8471a2e0682b72a1fd5a76064b *R/aedseo-package.R
 65db8927b9a1269e9075b0f40a166567 *R/aedseo.R
 53bd92b6174f3a720570184d8cb90737 *R/autoplot.R
@@ -18,7 +18,7 @@ b56ff2b193ecba52f9ec7f3b10cca008 *R/utils-pipe.R
 1ea8ba84c6f98addbce279b5075ba426 *inst/doc/aedseo_introduction.R
 fec8bfb005131fef5c5e1892a6c2266b *inst/doc/aedseo_introduction.Rmd
 7fe78e6f45bba98660e0e77c45fd67a7 *inst/doc/aedseo_introduction.html
-b30a9e9b43671cb3dc7cde96112ca2db *man/aedseo-package.Rd
+c18ffae42deb55b717403510542a672f *man/aedseo-package.Rd
 ee41cb80577fd30e36353659fed6ccae *man/aedseo.Rd
 1c054a32520b7046627dc86e33c0feb8 *man/autoplot.Rd
 7558e8ab76247e11b10effdbc736f6cb *man/epi_calendar.Rd
