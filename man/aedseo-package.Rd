@@ -3,12 +3,11 @@
 \docType{package}
 \name{aedseo-package}
 \alias{aedseo-package}
-\alias{_PACKAGE}
-\title{aedseo: Automated and Early Detection of Seasonal Epidemic Onset}
+\title{aedseo: Automated and Early Detection of Seasonal Epidemic Onset and Burden Levels}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-A powerful tool for automating the early detection of seasonal epidemic onsets in time series data. It offers the ability to estimate growth rates for consecutive time intervals and calculate the sum of cases (SoC) within those intervals. It is particularly useful for epidemiologists, public health professionals, and researchers seeking to identify and respond to seasonal epidemics in a timely fashion. For reference on growth rate estimation, see Walling and Lipstich (2007) \doi{10.1098/rspb.2006.3754} and Obadia et al. (2012) \doi{10.1186/1472-6947-12-147}.
+A powerful tool for automating the early detection of seasonal epidemic onsets in time series data. It offers the ability to estimate growth rates across consecutive time intervals, calculate the sum of cases (SoC) within those intervals, and estimate seasonal onsets within user defined seasons. With use of a disease-specific threshold it also offers the possibility to estimate seasonal onset of epidemics. Additionally it offers the ability to estimate burden levels for seasons based on historical data. It is aimed towards epidemiologists, public health professionals, and researchers seeking to identify and respond to seasonal epidemics in a timely fashion.
 }
 \seealso{
 Useful links:
@@ -24,11 +23,13 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Sofia Myrup Otero \email{smot@ssi.dk} (\href{https://orcid.org/0009-0006-4953-614X}{ORCID})
   \item Kasper Schou Telkamp \email{kasper.telkamp@gmail.com} (\href{https://orcid.org/0009-0001-5126-0190}{ORCID})
 }
 
 Other contributors:
 \itemize{
+  \item Rasmus Skytte Randløv \email{rske@ssi.dk} (\href{https://orcid.org/0000-0002-5860-3838}{ORCID}) [reviewer]
   \item Statens Serum Institut, SSI [copyright holder, funder]
 }
 

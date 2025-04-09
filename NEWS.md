@@ -1,3 +1,65 @@
+# aedseo 0.3.0
+
+## Deprecations
+
+* `aedseo()` is now deprecated. Please use `seasonal_onset()` instead. A warning is shown when using `aedseo()` (#41).
+
+* `tsd()` is now deprecated. Please use `to_time_series()` instead. A warning is shown when using `tsd()` (#41).
+
+## Features
+
+* Added the `seasonal_burden_levels()` function, which calculates burden levels based on data from previous seasons with two different methods; "peak_levels" or "intensity_levels" (#37).
+
+* Added the `fit_percentiles()` function, which optimises a user selected distribution and calculates the percentiles based on observations and weights. It is meant to be used within the `seasonal_burden_levels()` function (#35, #37) - Renamed `fit_quantiles()` to `fit_percentiles()` (#60).
+
+* Added `combined_seasonal_output()` as the main function to run both `seasonal_onset()` and `seasonal_burden_levels()` to get a combined result for the newest season (#44).
+
+* Added `consecutive_growth_warnings()` function to help the user with a method to define the disease-specific threshold (#80).
+
+* Added a new argument `only_current_season` to `seasonal_onset()`, `seasonal_burden_levels()` and `combined_seasonal_output()` which gives the possibility to either get output from only the current season or for all available seasons (#45).
+
+* Added `historical_summary()` which uses a `tsd_onset` object to summarise historical estimations (#75).
+
+* `summary()` can now summarise `tsd_burden_level` objects (#60).
+
+* `plot()` and `autoplot()` can now plot `tsd_combined_seasonal_output` and `tsd_consecutive_growth_warning` objects (#57, #80).
+
+* Added `generate_seasonal_data()` to generate synthetic data for testing and documentation purposes (#56).
+
+* Added `seasonal_onset()` as a replacement for the deprecated `aedseo()` function (#41).
+
+* Added `to_time_series()` as a replacement for the deprecated `tsd()` function (#41).
+
+## Improvements
+
+* Enhanced clarity and user guidance in the vignettes:
+  - `vignette("generate_seasonal_wave")`,
+  - `vignette("aedseo")`,
+  - `vignette("seasonal_onset")`
+  - `vignette("burden_levels")`
+  providing a comprehensive walkthrough of the application of the functions provided by the `aedseo` package with detailed explanations and illustrative examples (#56, #57, #58, #59, #60, #61).
+
+* Improved the `autoplot()` function which can now visualise dates as days, weeks and months on the x-axis with the `time_interval` argument (#56).
+
+* Improved the `epi_calendar()` function to work for a season spanning new year (#34).
+
+* Using `predict()` on `tsd_onset` objects now uses the same time-scale as the given object (#61).
+That is, the `time_interval` attribute controls if predictions are by "days", "weeks" or "months".
+
+* The `aedseo()` function now allows for the choice of adding season as an input argument (#34).
+
+* `{checkmate}` assertions have been added to enhance user feedback with clearer error messages and to ensure functions operate correctly by validating inputs (#33).
+
+* Improved the `aedseo()` function to work with `NA` values. The user now defines how many `NA` values the function should allow in each window (#32).
+
+## Minor changes
+
+* Added Sofia Myrup Otero as an author of the R package (#55).
+
+* Added Rasmus Skytte Randløv as a reviewer of the R package (#55).
+
+* The `disease_threshold` argument now reflects the disease threshold in one time step. If the total number of cases in a window of size `k` exceeds  `disease_threshold * k`, a seasonal onset alarm can be triggered (#32).
+
 # aedseo 0.1.2
 
 ## Minor changes
@@ -32,7 +94,7 @@
 
 - Included the `fit_growth_rate` function, enabling users to fit growth rate models to time series observations.
 
-- Introduced the `predict` method for `aedseo` objects, which allows you to predict observations for future time steps given 
+- Introduced the `predict` method for `aedseo` objects, which allows you to predict observations for future time steps given
 the growth rates.
 
 - Added the `summary` method for `aedseo` objects, providing a comprehensive summary of the results.

@@ -2,67 +2,195 @@
 % Please edit documentation in R/autoplot.R
 \name{autoplot}
 \alias{autoplot}
-\alias{autoplot.aedseo_tsd}
-\alias{autoplot.aedseo}
-\title{Create a complete 'ggplot' appropriate to a particular data type}
+\alias{autoplot.tsd}
+\alias{autoplot.tsd_onset}
+\alias{autoplot.tsd_onset_and_burden}
+\alias{autoplot.tsd_growth_warning}
+\title{Autoplot a \code{tsd} object}
 \usage{
 autoplot(object, ...)
 
-\method{autoplot}{aedseo_tsd}(object, ...)
+\method{autoplot}{tsd}(
+  object,
+  line_width = 0.7,
+  obs_size = 2,
+  text_family = "sans",
+  time_interval_step = "5 weeks",
+  y_label = "Weekly observations",
+  ...
+)
 
-\method{autoplot}{aedseo}(object, linewidth = 0.7, size = 2, alpha = 0.3, width = 0.2, ...)
+\method{autoplot}{tsd_onset}(
+  object,
+  disease_color = "black",
+  line_width = 0.7,
+  obs_size = 2,
+  alpha_warning = 0.2,
+  alpha_ribbon = 0.1,
+  text_family = "sans",
+  legend_position = "bottom",
+  time_interval_step = "5 weeks",
+  y_label = "Weekly observations",
+  ...
+)
+
+\method{autoplot}{tsd_onset_and_burden}(
+  object,
+  y_lower_bound = 5,
+  factor_to_max = 2,
+  disease_color = "royalblue",
+  season_start = 21,
+  season_end = season_start - 1,
+  time_interval_step = "3 weeks",
+  y_label = "Weekly observations",
+  text_burden_size = 10/2.8,
+  fill_alpha = c(0.45, 0.6, 0.75, 0.89, 1),
+  text_family = "sans",
+  line_color = "black",
+  line_type = "solid",
+  vline_color = "red",
+  vline_linetype = "dashed",
+  y_scale_labels = scales::label_comma(big.mark = ".", decimal.mark = ","),
+  theme_custom = ggplot2::theme_bw(),
+  legend_position = "right",
+  ...
+)
+
+\method{autoplot}{tsd_growth_warning}(
+  object,
+  k = 5,
+  skip_current_season = TRUE,
+  line_width = 1,
+  text_family = "sans",
+  legend_position = "bottom",
+  breaks_y_axis = 8,
+  ...
+)
 }
 \arguments{
-\item{object}{An \code{aedseo_tsd} or \code{aedseo} object}
+\item{object}{A \code{tsd_onset} object}
 
 \item{...}{Additional arguments (not used).}
 
-\item{linewidth}{Numeric, the width of the line for the growth rate}
+\item{line_width}{A numeric specifying the width of line connecting observations.}
 
-\item{size}{Numeric, size of observational points.}
+\item{obs_size}{A numeric, specifying the size of observational points.}
 
-\item{alpha}{Numeric, the alpha (transparency) for the observations with a
-significantly positive growth rate.}
+\item{text_family}{A character specifying the font family for the text labels.}
 
-\item{width}{Numeric, the width of the error bar employed to show the
-confidence interval of the growth rate estimate.}
+\item{time_interval_step}{A character vector specifying the time interval and how many time steps are desired
+on the x-axis, e.g. '10 days', '4 weeks', or '3 months'.}
+
+\item{y_label}{A character vector specifying the y label text.}
+
+\item{disease_color}{A character specifying the base color of the disease.}
+
+\item{alpha_warning}{A numeric specifying the alpha (transparency) for the observations with a
+seasonal_onset_alarm (first plot) or significantly positive growth rate (second plot).}
+
+\item{alpha_ribbon}{A numeric specifying the alpha for the confidence intervals of the growth rate.}
+
+\item{legend_position}{A character specifying the position of the legend on the plot.}
+
+\item{y_lower_bound}{A numeric specifying the lower bound of the y-axis.}
+
+\item{factor_to_max}{A numeric specifying the factor to multiply the high burden level for extending the y-axis.}
+
+\item{season_start, season_end}{Integers giving the start and end weeks of the seasons to
+stratify the observations by.}
+
+\item{text_burden_size}{A numeric specifying the size of the text labels.}
+
+\item{fill_alpha}{A numeric vector specifying the transparency levels for the fill colors of burden levels.
+Must match the number of levels.}
+
+\item{line_color}{A character specifying the color of the line connecting observations.}
+
+\item{line_type}{A character specifying the line type for observation line.}
+
+\item{vline_color}{A character specifying the color of the vertical outbreak start lines.}
+
+\item{vline_linetype}{A character specifying the line type for outbreak start lines.}
+
+\item{y_scale_labels}{A function to format y-axis labels.}
+
+\item{theme_custom}{A function with a ggplot2 theme, specifying the theme to apply to the plot.}
+
+\item{k}{An integer specifying the window size used to create the \code{tsd_onset} object.}
+
+\item{skip_current_season}{A logical. Do you want to skip your current season?}
+
+\item{breaks_y_axis}{A numeric specifying how many breaks to show on the y-axis.}
 }
 \value{
-A 'ggplot' object for visualizing the time series data.
+A 'ggplot' object for visualizing the \code{tsd} data.
+
+A 'ggplot' object for visualizing the \code{tsd_onset} data.
+
+A 'ggplot' object for visualizing the \code{tsd_onset_and_burden} data for the current season.
+
+A 'ggplot' object for visualizing the \code{tsd_growth_warning} data.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}}
+Generates a complete 'ggplot' object suitable for visualizing time series data in a
+\code{tsd}, \code{tsd_onset} or \code{tsd_onset_and_burden} object.
 
-This function generates a complete 'ggplot' object suitable for
-visualizing time series data in an \code{aedseo_tsd} object. It creates a line
-plot connecting the observations and adds points at each data point.
+\code{autoplot(tsd)}
+\itemize{
+\item Generates points for each observation and connects them with a line.
+}
+
+\code{autoplot(tsd_onset)}
+\itemize{
+\item The first plot generates a line connecting the observations.
+The transparency of the points reflects if seasonal onset has occurred.
+\item The second plot presents the growth rate for each observation along with confidence intervals.
+The transparency of the points indicates whether a growth warning condition is met.
+}
+
+\code{autoplot(tsd_onset_and_burden)}
+\itemize{
+\item Generates a line connecting the observations in the current season, along with colored regions
+representing different burdens levels and a vertical line indicating outbreak start.
+The y-axis is scaled with \code{ggplot2::scale_y_log10} to give better visualisation of the burden levels.
+}
 }
 \examples{
-# Create an example aedseo_tsd object
-aedseo_tsd_object <- tsd(
-  observed = c(100, 120, 150, 180, 220, 270),
-  time = as.Date(c(
-    "2023-01-01",
-    "2023-01-02",
-    "2023-01-03",
-    "2023-01-04",
-    "2023-01-05",
-    "2023-01-06"
-  )),
-  time_interval = "day"
-)
+set.seed(345)
+# Create an example `tsd` object
+time_series <- generate_seasonal_data()
+autoplot(time_series)
 
-# Create a ggplot visualization for the aedseo_tsd object
-autoplot(aedseo_tsd_object)
-
-# Create an aedseo object
-aedseo_object <- aedseo(
-  tsd = aedseo_tsd_object,
+# Create an `tsd_onset` object
+time_series_with_onset <- seasonal_onset(
+  tsd = time_series,
   k = 3,
   level = 0.95,
   family = "quasipoisson"
 )
+autoplot(time_series_with_onset)
 
-# Create a ggplot visualization of growth rates with confidence intervals
-autoplot(aedseo_object, linewidth = 1, alpha = 0.2)
+# Define `disease_threshold`
+disease_threshold <- 150
+
+# Create a `tsd_onset_and_burden` object
+tsd_onset_burden <- combined_seasonal_output(
+  tsd = time_series,
+  disease_threshold = disease_threshold
+)
+autoplot(tsd_onset_burden)
+
+# Create an `tsd_onset` object
+tsd_onset <- seasonal_onset(
+  tsd = time_series,
+  k = 5,
+  family = "quasipoisson",
+  season_start = 21,
+  only_current_season = FALSE
+)
+
+tsd_growth_warning <- consecutive_growth_warnings(tsd_onset)
+
+autoplot(tsd_growth_warning)
+
 }
